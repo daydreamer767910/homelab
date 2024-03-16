@@ -1,0 +1,44 @@
+version: "3.8"
+
+services:
+  wg-easy:
+    environment:
+      # Change Language:
+      # (Supports: en, ru, tr, no, pl, fr, de)
+      - LANG=en
+      # ⚠️ Required:
+      # Change this to your host's public address
+      - WG_HOST=oumass.duckdns.org
+      - PASSWORD=oumass
+      # Optional:
+      # - PASSWORD=foobar123
+      # - WG_PORT=51820
+      # - WG_DEFAULT_ADDRESS=10.8.0.x
+      - WG_DEFAULT_DNS=172.19.0.2
+      # - WG_MTU=1420
+      #- WG_ALLOWED_IPS=192.168.1.0/24, 172.19.0.0/24
+      # - WG_PERSISTENT_KEEPALIVE=25
+      # - WG_PRE_UP=echo "Pre Up" > /etc/wireguard/pre-up.txt
+      # - WG_POST_UP=echo "Post Up" > /etc/wireguard/post-up.txt
+      # - WG_PRE_DOWN=echo "Pre Down" > /etc/wireguard/pre-down.txt
+      # - WG_POST_DOWN=echo "Post Down" > /etc/wireguard/post-down.txt
+
+    image: ghcr.io/wg-easy/wg-easy
+    container_name: wg-easy-alone
+    volumes:
+      - ./conf:/etc/wireguard
+    ports:
+      - "51820:51820/udp"
+      - "51821:51821/tcp"
+    dns:
+      - 192.168.1.67
+    dns_search:
+      - ddh2000.duckdns.org
+      - oumass.duckdns.org
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    sysctls:
+      - net.ipv4.ip_forward=1
+      - net.ipv4.conf.all.src_valid_mark=1

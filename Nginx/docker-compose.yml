@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+  nginx:
+    image: nginx:latest
+    container_name: nginx-alone
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+    dns:
+      - 192.168.1.67
+    volumes:
+      - ./conf/default.conf:/etc/nginx/conf.d/nginx.conf
+      - ./html:/usr/share/nginx/html
+      - ./certbot:/etc/letsencrypt   # 证书目录
+
+

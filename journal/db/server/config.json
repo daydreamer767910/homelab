@@ -1,0 +1,17 @@
+{
+	"JwtSecret": "JDJhJDE0JEUzWmc1anNRREgxeXZiWGNIOS50ak8vM1pTYjF5R29VOUN0ZHJCaWk1MWMxQzJIak5halQ2",
+	"ThumbnailCfg": [
+		{
+			"PercentPosition": 5,
+			"Duration": 2
+		},
+		{
+			"PercentPosition": 25,
+			"Duration": 2
+		},
+		{
+			"PercentPosition": 45,
+			"Duration": 2
+		}
+	]
+}

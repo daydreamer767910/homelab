@@ -1,0 +1,111 @@
+version: '3.8'
+
+services:
+  unbound:
+    image: mvance/unbound:latest
+    container_name: unbound
+    networks:
+      lan:
+         ipv4_address: 172.19.0.2
+    volumes:
+      - ./unbound/my_conf/a-records.conf:/opt/unbound/etc/unbound/a-records.conf
+      #- ./unbound/my_conf/custom-unbound.conf:/opt/unbound/etc/unbound/custom-unbound.conf
+      #- ./unbound/my_conf/entrypoint.sh:/opt/unbound/etc/unbound/entrypoint.sh
+    #entrypoint: /opt/unbound/etc/unbound/entrypoint.sh
+    ports:
+      - "53:53/udp"
+      - "53:53/tcp"
+    restart: always
+
+  nginx:
+    environment:
+      - TZ=America/Los_Angeles
+    image: nginx:latest
+    container_name: nginx
+    restart: unless-stopped
+    networks:
+      lan:
+         ipv4_address: 172.19.0.3
+    ports:
+      - '443:443'
+      - "51820:51820/udp"
+    dns:
+      - 172.19.0.2
+    volumes:
+      - ./Nginx/conf/nginx.conf:/etc/nginx/nginx.conf
+      - ./Nginx/certbot:/etc/letsencrypt
+    depends_on:
+      - journal
+      - wg-easy
+      - unbound
+
+  journal:
+    environment:
+      - BIND_ADDRESS=0.0.0.0:5000
+      - JWT_SECRET=12345678
+    image: daydreamer767910/journal:latest
+    container_name: journal
+    networks:
+      lan:
+         ipv4_address: 172.19.0.4
+    ports:
+      - '5000:5000'
+    dns:
+      - 172.19.0.2
+    restart: unless-stopped
+    volumes:
+      - ./journal/db:/app/db
+      - ./journal/public:/app/public
+      - ./journal/logs:/app/logs
+    depends_on:
+      - unbound
+    
+  wg-easy:
+    environment:
+      # Change Language:
+      # (Supports: en, ru, tr, no, pl, fr, de)
+      - LANG=en
+      # ⚠️ Required:
+      # Change this to your host's public address
+      - WG_HOST=oumass.duckdns.org
+      - PASSWORD=oumass
+      # Optional:
+      #- WG_PORT=51820
+      # - WG_DEFAULT_ADDRESS=10.8.0.x
+      - WG_DEFAULT_DNS=172.19.0.2
+      # - WG_MTU=1420
+      # - WG_ALLOWED_IPS=192.168.15.0/24, 10.0.1.0/24
+      # - WG_PERSISTENT_KEEPALIVE=25
+    image: ghcr.io/wg-easy/wg-easy
+    container_name: wg-easy
+    volumes:
+      - ./wg-easy/conf:/etc/wireguard
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    networks:
+      lan:
+         ipv4_address: 172.19.0.5
+    ports:
+      - '51821:51821'
+    dns:
+      - 172.19.0.2
+    sysctls:
+      - net.ipv4.ip_forward=1
+      - net.ipv4.conf.all.src_valid_mark=1
+    depends_on:
+      - unbound
+
+  
+
+networks:
+  lan:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.19.0.0/16
+          gateway: 172.19.0.1
+    
+

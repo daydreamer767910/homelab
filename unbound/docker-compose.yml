@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  unbound:
+    image: mvance/unbound:latest
+    container_name: unbound-alone
+    volumes:
+      - type: bind
+        read_only: true
+        source: ./my_conf/a-records.conf
+        target: /opt/unbound/etc/unbound/a-records.conf
+    ports:
+      - "53:53/udp"
+      - "53:53/tcp"
+    restart: always
